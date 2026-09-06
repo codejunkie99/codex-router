@@ -45,8 +45,13 @@ struct RouterHealthProbeTests {
         environment: ["MODEL_ROUTER_PORT": "", "KIMI_ROUTER_PORT": "4300"]
       ) == 4300
     )
+    #expect(try RouterHealthProbe.routerPort(environment: ["MODEL_ROUTER_PORT": " 4.202e3 "]) == 4202)
+    #expect(try RouterHealthProbe.routerPort(environment: ["MODEL_ROUTER_PORT": "4202.0"]) == 4202)
     #expect(throws: (any Error).self) {
       try RouterHealthProbe.routerPort(environment: ["MODEL_ROUTER_PORT": "80000"])
+    }
+    #expect(throws: (any Error).self) {
+      try RouterHealthProbe.routerPort(environment: ["MODEL_ROUTER_PORT": "4202.5"])
     }
   }
 

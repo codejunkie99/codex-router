@@ -3890,15 +3890,19 @@ enum RouterHealthProbe {
   }()
 
   // paths.mjs `port()`: the first non-empty alias wins, and an invalid value is
-  // an error rather than a fallback to the default.
+  // an error rather than a fallback to the default. Node parses the value with
+  // `Number()`, which accepts surrounding whitespace, `4202.0`, and `4.202e3`;
+  // parse as a Double first so a port the router accepted is accepted here.
   static func routerPort(environment: [String: String]) throws -> Int {
     let value = ["MODEL_ROUTER_PORT", "CODEX_ROUTER_PORT", "KIMI_ROUTER_PORT"]
       .compactMap { environment[$0] }
       .first { !$0.isEmpty } ?? "4202"
-    guard let port = Int(value), (1...65_535).contains(port) else {
+    guard let number = Double(value.trimmingCharacters(in: .whitespacesAndNewlines)),
+      number.isFinite, number == number.rounded(), number >= 1, number <= 65_535
+    else {
       throw RouterError("MODEL_ROUTER_PORT must be a TCP port between 1 and 65535.")
     }
-    return port
+    return Int(number)
   }
 
   // caller-auth.mjs `validCallerSecret`: at least 32 characters of [A-Za-z0-9_-].
